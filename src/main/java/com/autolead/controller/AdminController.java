@@ -27,6 +27,14 @@ public class AdminController {
         return leadService.list();
     }
 
+    @GetMapping("/leads/{id}")
+    public LeadResponse get(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal User user
+    ) {
+        return leadService.getById(id, user);
+    }
+
     @PatchMapping("/leads/{id}/status")
     public LeadStatusHistoryResponse updateStatus(
             @PathVariable UUID id,
