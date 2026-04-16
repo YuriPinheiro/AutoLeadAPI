@@ -43,8 +43,12 @@ POST /auth/login
 
 POST /leads
 GET /leads
+GET /leads/{id}
+GET /leads/{id}/history
 
 GET /admin/leads
+GET /admin/leads/{id}
+PATCH /admin/leads/{id}/status
 ```
 
 
