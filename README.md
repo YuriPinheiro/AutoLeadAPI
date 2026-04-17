@@ -32,6 +32,9 @@ Projeto baseado em **Spring Boot + PostgreSQL**, seguindo padrão:
   - `userId`
   - `email`
   - `role`
+ 
+## Segurança
+Todos endpoints passam por um filtro, que verifica se o usuario que esta fazendo a requisição é o dono do objeto em questão, ou é User.role == ADMIN. Verificado através do Spring Security.
 
 Exemplo de uso:
 
@@ -45,6 +48,9 @@ POST /leads
 GET /leads
 GET /leads/{id}
 GET /leads/{id}/history
+POST /leads/{id}/images
+GET /leads/{id}/images
+DELETE /leads/{id}/images/{imageId]
 
 GET /admin/leads
 GET /admin/leads/{id}
