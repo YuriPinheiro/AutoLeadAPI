@@ -11,9 +11,9 @@ import java.util.UUID;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
 @Getter
 @Setter
+@Entity
 @ToString(exclude = "vehicleLeads")
 @Table(name = "users")
 public class User {

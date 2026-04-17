@@ -11,9 +11,11 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-@Data
+
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 @Entity
 @Table(name = "vehicle_leads")
 public class Lead {
