@@ -2,18 +2,12 @@ package com.autolead.service;
 
 import com.autolead.domain.enums.ImageType;
 import com.autolead.domain.enums.UserRole;
-import com.autolead.domain.model.LeadStatusHistory;
-import com.autolead.domain.model.VehicleImage;
+import com.autolead.domain.model.*;
 import com.autolead.domain.security.LeadAccessValidator;
 import com.autolead.dto.image.ImageResponse;
 import com.autolead.dto.lead.*;
-import com.autolead.domain.model.Lead;
 import com.autolead.domain.enums.LeadStatus;
-import com.autolead.domain.model.User;
-import com.autolead.repository.ImageRepository;
-import com.autolead.repository.LeadRepository;
-import com.autolead.repository.LeadStatusHistoryRepository;
-import com.autolead.repository.UserRepository;
+import com.autolead.repository.*;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,14 +21,16 @@ public class LeadService {
     private final LeadRepository repository;
     private final UserRepository userRepository;
     private final LeadStatusHistoryRepository historyRepository;
+    private final LeadInteractionRepository interactionRepository;
     private final ImageService imageService;
     private final LeadMapper leadMapper;
 
 
-    public LeadService(LeadRepository repository, UserRepository userRepository, LeadStatusHistoryRepository historyRepository, ImageService imageService, LeadMapper leadMapper) {
+    public LeadService(LeadRepository repository, UserRepository userRepository, LeadStatusHistoryRepository historyRepository, LeadInteractionRepository interactionRepository, ImageService imageService, LeadMapper leadMapper) {
         this.repository = repository;
         this.userRepository = userRepository;
         this.historyRepository = historyRepository;
+        this.interactionRepository = interactionRepository;
         this.leadMapper = leadMapper;
         this.imageService = imageService;
     }
@@ -148,6 +144,37 @@ public class LeadService {
 
         imageService.deleteImage(imageId, leadId);
 
+    }
+
+    public void registerLeadInteraction(UUID leadId, CreateLeadInteractionRequest request,  User user){
+        if(!LeadAccessValidator.isAdmin(user)){
+            throw new RuntimeException("Access denied");
+        }
+
+        Lead lead = repository.findById(leadId)
+                .orElseThrow();
+
+
+        LeadInteraction interaction = LeadInteractionMapper.toEntity(request);
+        interaction.setLead(lead);
+        interaction.setUser(user);
+
+        interactionRepository.save(interaction);
+
+    }
+
+    public List<LeadInteractionResponse> listLeadInteractions(UUID id, User user){
+        Lead lead = repository.findById(id)
+                .orElseThrow();
+
+        if(!LeadAccessValidator.canAccessLead(user, lead)){
+            throw new RuntimeException("Access denied");
+        }
+
+        return interactionRepository.findByLeadId(id)
+                .stream()
+                .map(LeadInteractionMapper::toResponse)
+                .toList();
     }
 
 }

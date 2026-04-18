@@ -12,4 +12,8 @@ public class LeadAccessValidator {
 
         return isOwner || isAdmin;
     }
+
+    public static boolean isAdmin(User user) {
+        return user.getRole() == UserRole.ADMIN;
+    }
 }

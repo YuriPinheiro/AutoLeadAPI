@@ -3,12 +3,10 @@ package com.autolead.controller;
 import com.autolead.domain.enums.ImageType;
 import com.autolead.domain.model.User;
 import com.autolead.dto.image.ImageResponse;
-import com.autolead.dto.lead.CreateLeadRequest;
-import com.autolead.dto.lead.CreateLeadStatusHistoryRequest;
-import com.autolead.dto.lead.LeadResponse;
-import com.autolead.dto.lead.LeadStatusHistoryResponse;
+import com.autolead.dto.lead.*;
 import com.autolead.service.LeadService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -86,4 +84,24 @@ public class LeadController {
         service.deleteImage(leadId, imageId, user);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/interaction")
+    public ResponseEntity<Void> createInteraction(
+            @PathVariable UUID id,
+            @Valid @RequestBody CreateLeadInteractionRequest request,
+            @AuthenticationPrincipal User user
+    ){
+        service.registerLeadInteraction(id, request, user);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @GetMapping("/{id}/interaction")
+    public List<LeadInteractionResponse> listLeadInteractions(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal User user
+    ){
+        return service.listLeadInteractions(id, user);
+    }
+
+
 }
