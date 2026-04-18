@@ -51,6 +51,8 @@ GET /leads/{id}/history
 POST /leads/{id}/images
 GET /leads/{id}/images
 DELETE /leads/{id}/images/{imageId]
+POST /leads/{id}/interaction
+GET /leads/{id}/interaction
 
 GET /admin/leads
 GET /admin/leads/{id}
