@@ -13,7 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class LeadService {
@@ -21,16 +23,16 @@ public class LeadService {
     private final LeadRepository repository;
     private final UserRepository userRepository;
     private final LeadStatusHistoryRepository historyRepository;
-    private final LeadInteractionRepository interactionRepository;
+    private final FavoriteRepository favoriteRepository;
     private final ImageService imageService;
     private final LeadMapper leadMapper;
 
 
-    public LeadService(LeadRepository repository, UserRepository userRepository, LeadStatusHistoryRepository historyRepository, LeadInteractionRepository interactionRepository, ImageService imageService, LeadMapper leadMapper) {
+    public LeadService(LeadRepository repository, UserRepository userRepository, LeadStatusHistoryRepository historyRepository, ImageService imageService, FavoriteRepository favoriteRepository, LeadMapper leadMapper) {
         this.repository = repository;
         this.userRepository = userRepository;
         this.historyRepository = historyRepository;
-        this.interactionRepository = interactionRepository;
+        this.favoriteRepository = favoriteRepository;
         this.leadMapper = leadMapper;
         this.imageService = imageService;
     }
@@ -41,32 +43,57 @@ public class LeadService {
 
         repository.save(lead);
 
-        return leadMapper.toResponse(lead);
+        return leadMapper.toResponse(lead, false);
     }
 
-    public List<LeadResponse> list() {
-        return repository.findAll()
+    public List<LeadResponse> list(User user) {
+        List<Lead> leads = repository.findAll();
+
+        Set<UUID> favoritedLeadIds = favoriteRepository
+                .findByUserId(user.getId())
                 .stream()
-                .map(leadMapper::toResponse)
+                .map(f -> f.getLead().getId())
+                .collect(Collectors.toSet());
+
+        return leads.stream()
+                .map(lead -> leadMapper.toResponse(
+                        lead,
+                        favoritedLeadIds.contains(lead.getId())
+                ))
                 .toList();
     }
 
     public LeadResponse getById(UUID id, User user){
+
         Lead lead = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Lead not found"));
 
-        //REGRA DE ACESSO
         if (!LeadAccessValidator.canAccessLead(user, lead)) {
             throw new RuntimeException("Access denied");
         }
 
-        return leadMapper.toResponse(lead);
+        boolean isFavorited = favoriteRepository
+                .findByUserIdAndLeadId(user.getId(), id)
+                .isPresent();
+
+        return leadMapper.toResponse(lead, isFavorited);
     }
 
     public List<LeadResponse> listByUser(User user) {
-        return repository.findByUserId(user.getId())
+
+        List<Lead> leads = repository.findByUserId(user.getId());
+
+        Set<UUID> favoritedLeadIds = favoriteRepository
+                .findByUserId(user.getId())
                 .stream()
-                .map(leadMapper::toResponse)
+                .map(f -> f.getLead().getId())
+                .collect(Collectors.toSet());
+
+        return leads.stream()
+                .map(lead -> leadMapper.toResponse(
+                        lead,
+                        favoritedLeadIds.contains(lead.getId())
+                ))
                 .toList();
     }
 
@@ -144,37 +171,6 @@ public class LeadService {
 
         imageService.deleteImage(imageId, leadId);
 
-    }
-
-    public void registerLeadInteraction(UUID leadId, CreateLeadInteractionRequest request,  User user){
-        if(!LeadAccessValidator.isAdmin(user)){
-            throw new RuntimeException("Access denied");
-        }
-
-        Lead lead = repository.findById(leadId)
-                .orElseThrow();
-
-
-        LeadInteraction interaction = LeadInteractionMapper.toEntity(request);
-        interaction.setLead(lead);
-        interaction.setUser(user);
-
-        interactionRepository.save(interaction);
-
-    }
-
-    public List<LeadInteractionResponse> listLeadInteractions(UUID id, User user){
-        Lead lead = repository.findById(id)
-                .orElseThrow();
-
-        if(!LeadAccessValidator.canAccessLead(user, lead)){
-            throw new RuntimeException("Access denied");
-        }
-
-        return interactionRepository.findByLeadId(id)
-                .stream()
-                .map(LeadInteractionMapper::toResponse)
-                .toList();
     }
 
 }

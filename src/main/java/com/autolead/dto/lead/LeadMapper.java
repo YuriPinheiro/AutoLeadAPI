@@ -21,7 +21,7 @@ public class LeadMapper {
         return lead;
     }
 
-    public LeadResponse toResponse(Lead lead) {
+    public LeadResponse toResponse(Lead lead, Boolean isFavorited) {
         return new LeadResponse(
                 lead.getId(),
                 lead.getBrand(),
@@ -30,6 +30,7 @@ public class LeadMapper {
                 lead.getMileage(),
                 lead.getDesiredPrice(),
                 lead.getDescription(),
+                isFavorited,
                 lead.getStatus(),
                 lead.getCreatedAt()
         );

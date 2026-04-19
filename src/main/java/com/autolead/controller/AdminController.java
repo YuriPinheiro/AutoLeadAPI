@@ -1,9 +1,8 @@
 package com.autolead.controller;
 
 import com.autolead.domain.model.User;
-import com.autolead.dto.lead.CreateLeadStatusHistoryRequest;
-import com.autolead.dto.lead.LeadResponse;
-import com.autolead.dto.lead.LeadStatusHistoryResponse;
+import com.autolead.dto.lead.*;
+import com.autolead.service.InteractionService;
 import com.autolead.service.LeadService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,14 +16,18 @@ import java.util.UUID;
 public class AdminController {
 
     private final LeadService leadService;
+    private final InteractionService interactionService;
 
-    public AdminController(LeadService leadService) {
+    public AdminController(LeadService leadService, InteractionService interactionService) {
         this.leadService = leadService;
+        this.interactionService = interactionService;
     }
 
     @GetMapping("/leads")
-    public List<LeadResponse> listAll() {
-        return leadService.list();
+    public List<LeadResponse> listAll(
+            @AuthenticationPrincipal User user
+    ) {
+        return leadService.list(user);
     }
 
     @GetMapping("/leads/{id}")
@@ -42,5 +45,13 @@ public class AdminController {
             @AuthenticationPrincipal User user
     ){
         return leadService.updateStatus(id, request, user);
+    }
+
+    @GetMapping("/user/{id}/interactions")
+    public List<UserInteractionResponse> getInterationsByUser(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal User user
+    ){
+        return interactionService.listUserInteractions(id, user);
     }
 }

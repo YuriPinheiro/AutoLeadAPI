@@ -5,17 +5,13 @@ import com.autolead.domain.enums.LeadStatus;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public record LeadResponse(
-
+public record LeadSummaryResponse(
         UUID id,
         String brand,
         String model,
         Integer year,
-        Integer mileage,
-        BigDecimal desiredPrice,
-        String description,
-        Boolean isFavorited,
+        BigDecimal price,
         LeadStatus status,
-        Long createdAt
-
+        String thumbnailUrl,
+        boolean isFavorited
 ) {}

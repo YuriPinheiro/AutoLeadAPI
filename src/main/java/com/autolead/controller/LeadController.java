@@ -4,6 +4,8 @@ import com.autolead.domain.enums.ImageType;
 import com.autolead.domain.model.User;
 import com.autolead.dto.image.ImageResponse;
 import com.autolead.dto.lead.*;
+import com.autolead.service.FavoriteService;
+import com.autolead.service.InteractionService;
 import com.autolead.service.LeadService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -21,9 +23,14 @@ import java.util.UUID;
 public class LeadController {
 
     private final LeadService service;
+    private final InteractionService interactionService;
+    private final FavoriteService favoriteService;
 
-    public LeadController(LeadService service) {
+    public LeadController(LeadService service, InteractionService interactionService, FavoriteService favoriteService)
+    {
         this.service = service;
+        this.interactionService = interactionService;
+        this.favoriteService = favoriteService;
     }
 
     @PostMapping
@@ -91,7 +98,7 @@ public class LeadController {
             @Valid @RequestBody CreateLeadInteractionRequest request,
             @AuthenticationPrincipal User user
     ){
-        service.registerLeadInteraction(id, request, user);
+        interactionService.registerLeadInteraction(id, request, user);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -100,8 +107,35 @@ public class LeadController {
             @PathVariable UUID id,
             @AuthenticationPrincipal User user
     ){
-        return service.listLeadInteractions(id, user);
+        return interactionService.listLeadInteractions(id, user);
     }
 
+    @DeleteMapping("/{leadId}/interaction/{interactionId}")
+    public ResponseEntity<Void> deleteInteraction(
+            @PathVariable UUID leadId,
+            @PathVariable UUID interactionId,
+            @AuthenticationPrincipal User user
+    ){
+        interactionService.deleteLeadInteraction(leadId, interactionId, user);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/favorite")
+    public ResponseEntity<Void> favorite(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal User user
+    ){
+        favoriteService.favorite(id, user);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @DeleteMapping("/{id}/unfavorite")
+    public ResponseEntity<Void> unfavorite(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal User user
+    ){
+        favoriteService.unfavorite(id, user);
+        return ResponseEntity.noContent().build();
+    }
 
 }
